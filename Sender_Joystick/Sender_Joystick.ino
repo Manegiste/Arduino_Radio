@@ -67,17 +67,18 @@ void setup() {
 void loop() {
   
 
-    char message[17] = "Hello, world!";
+    char message[32] = "Hello, world!";
     radio.stopListening();                                    // First, stop listening so we can talk.
     
     Serial.println(F("Now sending"));
 
-    sprintf(message, "%04d-%04d-%d-%d%d%d%d", analogRead(joystick_axis_x), analogRead(joystick_axis_y), digitalRead(joystick_button), digitalRead(up_button), digitalRead(down_button), digitalRead(left_button), digitalRead(right_button));
+//    sprintf(message, "%d %d %d %d %d %d %d", map(analogRead(joystick_axis_x), 0, 1024, 0, 255) , map(analogRead(joystick_axis_y) , 0, 1024, 0, 255), digitalRead(joystick_button), digitalRead(up_button), digitalRead(down_button), digitalRead(left_button), digitalRead(right_button));
+    sprintf(message, "%04d %04d", analogRead(joystick_axis_x), analogRead(joystick_axis_y) );
     Serial.println(message);
     
     unsigned long start_time = micros();                             // Take the time, and send it.  This will block until complete
 //     if (!radio.write(  &start_time , sizeof(unsigned long) ))
-     if (!radio.write(  message , 17 ))
+     if (!radio.write(  message , 32 ))
      {
        Serial.println(F("failed"));
      }

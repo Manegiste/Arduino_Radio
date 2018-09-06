@@ -80,7 +80,7 @@ void setup() {
   // set up the LCD's number of columns and rows: 
   lcd.begin(16, 2);
   lcd.setBacklight(WHITE ); 
-  lcd.print ("Starting...");
+//  lcd.print ("Starting...");
 
   // Init serial communication
   Serial.begin(115200);
@@ -150,8 +150,8 @@ void loop()
     }
     else
     {
-       lcd.setCursor(0,0); // Line 0, column 0
-       lcd.print("no radio");
+       lcd.setCursor(1,0); // Line 0, column 0
+ //      lcd.print("no radio");
     }
 
     lcd.setCursor(0,0); // Line 0, column 0
@@ -162,8 +162,8 @@ void loop()
 
       
        lcd.setCursor(0,0); // Line 0, column 0
-       lcd.print("message");
-       lcd.setCursor(1,0); // Line 0, column 0
+     // lcd.print("message");
+       lcd.setCursor(1,1); // Line 0, column 0
        
        i_new_x=map(i_x_joy, 0, 1024, 0, 180);
        if( cur_x != i_new_x)

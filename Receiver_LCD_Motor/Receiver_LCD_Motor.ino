@@ -28,7 +28,7 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 #define MOTOR_PIN_A  5
 #define MOTOR_PIN_B  6
 
-#define SERVO_PIN    7
+#define SERVO_PIN    3
 
 
 #define RADIO_CE     9
@@ -106,6 +106,16 @@ void setup() {
   radio.startListening();
 
   radio.printDetails();
+
+  //  for (int pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
+  //    // in steps of 1 degree
+  //    myservo.write(pos);              // tell servo to go to position in variable 'pos'
+  //    delay(15);                       // waits 15ms for the servo to reach the position
+  //  }
+  //  for (int pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
+  //    myservo.write(pos);              // tell servo to go to position in variable 'pos'
+  //    delay(15);                       // waits 15ms for the servo to reach the position
+  //  }
 }
 
 void HexPrint(char * string)
@@ -125,10 +135,10 @@ void HexPrint(char * string)
 void setMotor(int mot_speed, boolean reverse)
 {
   int pwm_speed = 0;
-  if (mot_speed > 255) 
-  pwm_speed = 255; 
-  else 
-  pwm_speed = mot_speed;
+  if (mot_speed > 255)
+    pwm_speed = 255;
+  else
+    pwm_speed = mot_speed;
   printf("Setmotor %d %d\n", pwm_speed, reverse);
   if (! reverse)
   {
@@ -184,7 +194,6 @@ void loop()
   if (i_status > 0)
   {
 
-
     lcd.setCursor(0, 0); // Line 0, column 0
     // lcd.print("message");
     lcd.setCursor(1, 1); // Line 0, column 0
@@ -222,7 +231,15 @@ void loop()
       }
     }
 
+    
+    {
+      char * lcd_msg = "";
+      lcd.setCursor(0, 1); // Line 0, column 0
+      lcd.print("X");
+      sprintf(lcd_msg, "%d %d", &i_new_x, &MOT_SPEED);
+      lcd.print(lcd_msg);
 
+    }
 
   }
 

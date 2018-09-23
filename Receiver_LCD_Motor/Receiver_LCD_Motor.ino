@@ -11,29 +11,20 @@
 #include <SPI.h>
 #include "RF24.h"
 #include <Servo.h>
+//#include <ServoTimer2.h>
 
 // Adafruit RGB display
 #include <Wire.h>
-#include <Adafruit_RGBLCDShield.h>
-#include <utility/Adafruit_MCP23017.h>
-
-// The shield uses the I2C SCL and SDA pins. On classic Arduinos
-// this is Analog 4 and 5 so you can't use those for analogRead() anymore
-// However, you can connect other I2C sensors to the I2C bus and share
-// the I2C bus.
-Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
-
 
 
 #define MOTOR_PIN_A  5
 #define MOTOR_PIN_B  6
 
-#define SERVO_PIN    3
-
+#define SERVO_PIN    2
+//#define RELEVAGE_PIN   3
 
 #define RADIO_CE     9
 #define RADIO_CS    10
-
 
 
 long MOT_REVERSE = 0;
@@ -46,18 +37,12 @@ RF24 radio( RADIO_CE, RADIO_CS);
 
 byte addresses[][6] = {"1Node", "2Node"};
 
-// These #defines make it easy to set the backlight color
-#define RED 0x1
-#define YELLOW 0x3
-#define GREEN 0x2
-#define TEAL 0x6
-#define BLUE 0x4
-#define VIOLET 0x5
-#define WHITE 0x7
-
 int cur_x;
 int cur_y;
+int i_servo2_pos;
+
 Servo myservo;
+//ServoTimer2 myservo2;
 
 void setup() {
 
@@ -68,26 +53,23 @@ void setup() {
 
   pinMode( MOTOR_PIN_A, OUTPUT);
   pinMode( MOTOR_PIN_B, OUTPUT);
+  //  pinMode(RELEVAGE_PIN, OUTPUT);
 
-  // attach servo
+  // attach servoS
   myservo.attach(SERVO_PIN);
+
+//  myservo2.attach(RELEVAGE_PIN);
+ // myservo2.write(255);
 
   MOT_SPEED = 1024;
   // init motor : stopped
   setMotor (MOT_REVERSE, 0);
   delay(1000);
 
-
-  // Init the LCD
-  // set up the LCD's number of columns and rows:
-  lcd.begin(16, 2);
-  lcd.setBacklight(WHITE );
-  //  lcd.print ("Starting...");
+//  analogWrite(RELEVAGE_PIN, 0);
 
   // Init serial communication
   Serial.begin(115200);
-  Serial.println(F("RF24/examples/GettingStarted"));
-  Serial.println(F("*** PRESS 'T' to begin transmitting to the other node"));
 
   // Init printf to serial
   printf_begin();
@@ -107,15 +89,7 @@ void setup() {
 
   radio.printDetails();
 
-  //  for (int pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
-  //    // in steps of 1 degree
-  //    myservo.write(pos);              // tell servo to go to position in variable 'pos'
-  //    delay(15);                       // waits 15ms for the servo to reach the position
-  //  }
-  //  for (int pos = 180; pos >= 0; pos -= 1) { // goes from 180 degrees to 0 degrees
-  //    myservo.write(pos);              // tell servo to go to position in variable 'pos'
-  //    delay(15);                       // waits 15ms for the servo to reach the position
-  //  }
+
 }
 
 void HexPrint(char * string)
@@ -135,11 +109,13 @@ void HexPrint(char * string)
 void setMotor(int mot_speed, boolean reverse)
 {
   int pwm_speed = 0;
+
+  printf("Set motor");
   if (mot_speed > 255)
     pwm_speed = 255;
   else
     pwm_speed = mot_speed;
-  printf("Setmotor %d %d\n", pwm_speed, reverse);
+
   if (! reverse)
   {
     analogWrite(MOTOR_PIN_A, pwm_speed);
@@ -155,9 +131,7 @@ void setMotor(int mot_speed, boolean reverse)
 
 void loop()
 {
-
-  int got_time = 0;
-  char message[17] = "";
+  char message[32] = "";
   char sz_line1[17] = "";
   char sz_line2[17] = "";
 
@@ -177,33 +151,22 @@ void loop()
 
   if ( radio.available())
   {
-    // Serial.println("radio available");
     while (radio.available()) {                                   // While there is data ready
-      radio.read( message, 17); //sizeof(int) );             // Get the payload
+      radio.read( message, 32);                                   // Get the payload
     }
-  }
-  else
-  {
-    lcd.setCursor(1, 0); // Line 0, column 0
-    //      lcd.print("no radio");
-  }
 
-  lcd.setCursor(0, 0); // Line 0, column 0
+  }
   i_status = sscanf(message, "%d %d", &i_x_joy, &i_y_joy ); //, &i_btn_joy, &i_btn_up, &i_btn_down, &i_btn_left, &i_btn_right);
-  lcd.print(message);
+
   if (i_status > 0)
   {
-
-    lcd.setCursor(0, 0); // Line 0, column 0
-    // lcd.print("message");
-    lcd.setCursor(1, 1); // Line 0, column 0
 
     i_new_x = map(i_x_joy, 0, 1024, 0, 180);
     if ( cur_x != i_new_x)
     {
+      printf("Servo cur_x %i\n", cur_x);
       cur_x = i_new_x;
-      myservo.write(cur_x);
-
+      myservo.write(cur_x );
     }
 
     i_new_y = i_y_joy; // map(i_y_joy, 0, 1024, -255, 255);
@@ -231,20 +194,19 @@ void loop()
       }
     }
 
-    
-    {
-      char * lcd_msg = "";
-      lcd.setCursor(0, 1); // Line 0, column 0
-      lcd.print("X");
-      sprintf(lcd_msg, "%d %d", &i_new_x, &MOT_SPEED);
-      lcd.print(lcd_msg);
-
-    }
+//    //     confirm servo2 position
+//    if (i_btn_up)
+//    {
+//      if (i_servo2_pos++ >= 255)
+//        i_servo2_pos = 255;
+//    }
+//    else if (i_btn_down)
+//    {
+//      if (i_servo2_pos-- <= 0)
+//        i_servo2_pos = 0;
+//    }
+//    analogWrite(RELEVAGE_PIN, i_servo2_pos );
 
   }
 
-
-  //  Serial.println (i_status);
-
 } // Loop
-
